@@ -296,6 +296,8 @@ if stock_seleccionado:
 
     ###############################################################################################
 
+    st.subheader("Cálculo de VaR con Volatilidad Móvil")
+
     # Percentiles para la distribución normal estándar
     q_5 = norm.ppf(0.05)  # Para α = 0.05
     q_1 = norm.ppf(0.01)  # Para α = 0.01
