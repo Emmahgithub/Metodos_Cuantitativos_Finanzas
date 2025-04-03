@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 from scipy.stats import kurtosis, skew, shapiro ,norm, t
 import altair as alt
-
+from statsmodels.graphics.tsaplots import plot_acf
 
 
 st.cache_data.clear()
@@ -145,6 +145,9 @@ if stock_seleccionado:
     ax.set_xlabel('Date')
     ax.set_ylabel('Values (%)')
     ax.legend()
+    # Mostrar la función de autocorrelación (ACF) de los rendimientos
+    fig, ax = plt.subplots(figsize=(12, 6))
+    plot_acf(df_rendimientos[stock_seleccionado], lags=40, ax=ax)
     st.pyplot(fig)
 
     # Calcular rendimientos logarítmicos 
