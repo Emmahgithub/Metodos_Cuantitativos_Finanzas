@@ -180,6 +180,7 @@ if stock_seleccionado:
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
     ax.plot(VaRN_rolling_df_95.index, VaRN_rolling_df_95['0.95% VaR Rolling'] * 100, label='0.95% VaR Rolling', color='red')
+    ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='green')
     ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
     ax.set_xlabel('Date')
     ax.set_ylabel('Values (%)')
@@ -191,12 +192,3 @@ if stock_seleccionado:
     print(ESN_rolling_df_95)
 
     print(ESH_rolling_df_99)
-
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
-    ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='red')
-    ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Values (%)')
-    ax.legend()
-    st.pyplot(fig)
