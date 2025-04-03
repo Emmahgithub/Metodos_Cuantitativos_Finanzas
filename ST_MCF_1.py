@@ -186,3 +186,14 @@ if stock_seleccionado:
     ax.set_ylabel('Values (%)')
     ax.legend()
     st.pyplot(fig)
+
+    #grafica prueba
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
+    ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'], label='0.95% ESN Rolling', color='red')
+    ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Values (%)')
+    ax.legend()
+    st.pyplot(fig)
