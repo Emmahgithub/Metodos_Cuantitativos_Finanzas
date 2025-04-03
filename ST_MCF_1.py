@@ -149,16 +149,7 @@ if stock_seleccionado:
 
     # Calcular rendimientos logarítmicos 
     #Aaaaaaaaaaaaaaaa pero queria que se viera bonito
-    df_rendimientos['log_ret'] = np.log(df_rendimientos[stock_seleccionado] / df_rendimientos[stock_seleccionado].shift(1))
-    
-    st.subheader("Rendimientos logaritmicos")
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos['log_ret'] * 100, label='Log Returns (%)', color='blue', alpha=0.5)
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Log Returns (%)')
-    ax.legend()
-    st.pyplot(fig)
 
     #Calculo de Value-At-Risk y de Expected Shortfall (historico)
 
