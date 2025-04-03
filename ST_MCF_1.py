@@ -136,6 +136,14 @@ if stock_seleccionado:
     col2.metric("Kurtosis", f"{Kurtosis:.4}")
     col3.metric("Skew", f"{skew:.2}")
 
+    #GRAFICA AGREGADA AL FINAL CUANDO MIS HUEVOS PELIGRABAN DE LOS RENDIMIENTOS DIARIOS PA Q SE VEA BONITO
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Values (%)')
+    ax.legend()
+    st.pyplot(fig)
+
     #Calculo de Value-At-Risk y de Expected Shortfall (historico)
 
     std_dev = np.std(df_rendimientos[stock_seleccionado])
