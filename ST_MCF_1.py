@@ -326,7 +326,7 @@ if stock_seleccionado:
 
     #Ya solo faltan las violaciones pero la neta q flojera, si las voy a hacer pero la neta q coraje me quurisad colgar d lis guevoosssssssssss
 
-    # Calcular violaciones
+    # Calcular violaciones mas violado me senti yo haciendo esto :))))
     violaciones_95 = (df_rendimientos[stock_seleccionado] < VaR_vol_95).sum()
     violaciones_99 = (df_rendimientos[stock_seleccionado] < VaR_vol_99).sum()
 
