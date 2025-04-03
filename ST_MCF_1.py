@@ -28,6 +28,14 @@ def obtener_datos(stocks):
 def calcular_rendimientos(df):
     return df.pct_change().dropna()
 
+# Expected Shortfall (ES) Rolling - Paramétrico Normal al 0.95%
+def calcular_es_normal_r(rendimientos):
+    if len(rendimientos) < window:
+        return np.nan
+    var = norm.ppf(1 - 0.95, rendimientos.mean(), rendimientos.std())
+    return rendimientos[rendimientos <= var].mean()
+
+
 def var_es_historico(df_rendimientos, stock_seleccionado, alpha):
     hVaR = df_rendimientos[stock_seleccionado].quantile(1 - alpha)
     ES_hist = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= hVaR].mean()
@@ -130,6 +138,7 @@ if stock_seleccionado:
 
     window = 252  # Tamaño de la ventana móvil
 
+
     rolling_mean = df_rendimientos[stock_seleccionado].rolling(window).mean()
     rolling_std = df_rendimientos[stock_seleccionado].rolling(window).std()
 
@@ -140,7 +149,7 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESN_R (Parametrico) 95%
 
-    ESN_R_95 =  rolling_mean - rolling_std * (norm.pdf(norm.ppf(1 - 0.95)) / (1 - 0.95)) 
+    ESN_R_95 =  df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_normal_r, raw=True)
     ESN_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESN Rolling': ESN_R_95}).set_index('Date')
 
     #Calculamos el valor para VaRH_R 95%
@@ -150,7 +159,8 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESH_R 95%
 
-    ESH_R_95 = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaRH_R_95].mean()
+
+    ESH_R_95 = 1
     ESH_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESH Rolling': ESH_R_95}).set_index('Date')
 
 ###################################################
@@ -191,4 +201,4 @@ if stock_seleccionado:
 
     print(ESN_rolling_df_95)
 
-    print(ESH_rolling_df_99)
+    print(ESH_rolling_df_95)
