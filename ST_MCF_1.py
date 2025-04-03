@@ -90,16 +90,17 @@ def calcular_es_historico_r_99(rendimientos):
 #################################################################################################################33
 #inciso e)
 
-def calcular_violaciones(df_rendimientos, stock_seleccionado, var_series, es_series):
-    violaciones_var = (df_rendimientos[stock_seleccionado] < var_series).sum()
-    violaciones_es = (df_rendimientos[stock_seleccionado] < es_series).sum()
-    return violaciones_var, violaciones_es
-
-def calcular_porcentaje_violaciones(df_rendimientos, stock_seleccionado, var_series):
-    violaciones = (df_rendimientos[stock_seleccionado] < var_series).sum()
+def calcular_violaciones_var(df_rendimientos, stock_seleccionado, var_dict):
+    resultados = {}
     total_observaciones = len(df_rendimientos)
-    porcentaje_violaciones = (violaciones / total_observaciones) * 100
-    return violaciones, porcentaje_violaciones
+
+    for metodo, var_series in var_dict.items():
+        violaciones = (df_rendimientos[stock_seleccionado] < var_series).sum()
+        porcentaje_violaciones = (violaciones / total_observaciones) * 100
+        resultados[metodo] = (violaciones, porcentaje_violaciones)
+    
+    return resultados
+
 
 
 
@@ -270,18 +271,23 @@ if stock_seleccionado:
 
     ####################################################################
 
-    violaciones_var_95, violaciones_es_95 = calcular_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_95['0.95% VaRN Rolling'], ESN_rolling_df_95['0.95% ESN Rolling'])
-    violaciones_var_99, violaciones_es_99 = calcular_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_99['0.99% VaRN Rolling'], ESN_rolling_df_99['0.99% ESN Rolling'])
+    # Calculo de violaciones de VaR y ES con Rolling Window
 
-    st.subheader("Validación de Estimaciones: Violaciones de VaR y ES")
-    st.text(f"Número de veces que la pérdida fue mayor que el VaR al 95%: {violaciones_var_95}")
-    st.text(f"Número de veces que la pérdida fue mayor que el ES al 95%: {violaciones_es_95}")
-    st.text(f"Número de veces que la pérdida fue mayor que el VaR al 99%: {violaciones_var_99}")
-    st.text(f"Número de veces que la pérdida fue mayor que el ES al 99%: {violaciones_es_99}")
+    st.header("Cálculo de Violaciones de VaR y ES con Rolling Window")
+    st.text("Acontinuacion se calcularan las violaciones de los resultados obtenidos anteriormente es decir calcularemos el porcentaje de violaciones que hubo en cada una de las medidas de riesgo que se calcularon con rolling window")
+    
+    var_dict = {
+        "VaR Normal 95%": VaRN_rolling_df_95['0.95% VaRN Rolling'],
+        "ES Normal 95%": ESN_rolling_df_95['0.95% ESN Rolling'],
+        "VaR Histórico 95%": VaRH_rolling_df_95['0.95% VaRH Rolling'],
+        "ES Histórico 95%": ESH_rolling_df_95['0.95% ESH Rolling'],
+        "VaR Normal 99%": VaRN_rolling_df_99['0.99% VaRN Rolling'],
+        "ES Normal 99%": ESN_rolling_df_99['0.99% ESN Rolling'],
+        "VaR Histórico 99%": VaRH_rolling_df_99['0.99% VaRH Rolling'],
+        "ES Histórico 99%": ESH_rolling_df_99['0.99% ESH Rolling'],
+    }
 
-    violaciones_var_95, porcentaje_var_95 = calcular_porcentaje_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_95['0.95% VaRN Rolling'])
-    violaciones_var_99, porcentaje_var_99 = calcular_porcentaje_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_99['0.99% VaRN Rolling'])
+    resultados_var = calcular_violaciones_var(df_rendimientos, stock_seleccionado, var_dict)
 
-    st.subheader("Validación de Estimaciones: Violaciones de VaR y Porcentajes")
-    st.text(f"Violaciones de VaR al 95%: {violaciones_var_95} ({porcentaje_var_95:.2f}%)")
-    st.text(f"Violaciones de VaR al 99%: {violaciones_var_99} ({porcentaje_var_99:.2f}%)")
+    for metodo, (violaciones, porcentaje) in resultados_var.items():
+        st.text(f"{metodo}: {violaciones} violaciones ({porcentaje:.2f}%)")
