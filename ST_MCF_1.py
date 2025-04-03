@@ -193,7 +193,7 @@ if stock_seleccionado:
     print(ESH_rolling_df_99)
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
+    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] , label='Daily Returns (%)', color='blue', alpha=0.5)
     ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='red')
     ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
     ax.set_xlabel('Date')
