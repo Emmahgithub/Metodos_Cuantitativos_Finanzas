@@ -38,3 +38,16 @@ def calcular_rendimientos(df):
 
     '''
     return df.pct_change().dropna()
+
+
+
+#for i in range(len(returns) - window):
+        #window_data = returns[i:i + window]
+        #mean, std = np.mean(window_data), np.std(window_data)
+        
+
+# Lista de acciones de ejemplo
+#url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+#df = pd.read_html(url, header=0)[0]  # Extrae la tabla de Wikipedia
+#stocks_lista = df['Symbol'].tolist()
+#stocks_lista = [ticker.replace('.', '-') for ticker in df['Symbol'].tolist()]
