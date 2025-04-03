@@ -87,6 +87,13 @@ def calcular_es_historico_r_99(rendimientos):
         return np.nan
     var = rendimientos.quantile(1 - 0.99)
     return rendimientos[rendimientos <= var].mean()
+#################################################################################################################33
+#inciso e)
+
+def calcular_violaciones(df_rendimientos, stock_seleccionado, var_series, es_series):
+    violaciones_var = (df_rendimientos[stock_seleccionado] < var_series).sum()
+    violaciones_es = (df_rendimientos[stock_seleccionado] < es_series).sum()
+    return violaciones_var, violaciones_es
 
 
 
@@ -254,4 +261,11 @@ if stock_seleccionado:
     ax.legend()
     st.pyplot(fig)
 
-    
+    violaciones_var_95, violaciones_es_95 = calcular_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_95['0.95% VaRN Rolling'], ESN_rolling_df_95['0.95% ESN Rolling'])
+    violaciones_var_99, violaciones_es_99 = calcular_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_99['0.99% VaRN Rolling'], ESN_rolling_df_99['0.99% ESN Rolling'])
+
+    st.subheader("Validación de Estimaciones: Violaciones de VaR y ES")
+    st.text(f"Número de veces que la pérdida fue mayor que el VaR al 95%: {violaciones_var_95}")
+    st.text(f"Número de veces que la pérdida fue mayor que el ES al 95%: {violaciones_es_95}")
+    st.text(f"Número de veces que la pérdida fue mayor que el VaR al 99%: {violaciones_var_99}")
+    st.text(f"Número de veces que la pérdida fue mayor que el ES al 99%: {violaciones_es_99}")
