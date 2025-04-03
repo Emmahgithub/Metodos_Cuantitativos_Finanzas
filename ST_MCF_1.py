@@ -158,6 +158,7 @@ if stock_seleccionado:
     ax.set_xlabel('Date')
     ax.set_ylabel('Log Returns (%)')
     ax.legend()
+    st.pyplot(fig)
 
     #Calculo de Value-At-Risk y de Expected Shortfall (historico)
 
