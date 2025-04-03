@@ -154,7 +154,7 @@ if stock_seleccionado:
     st.subheader("Rendimientos logaritmicos")
 
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos['log_ret'] , label='Log Returns (%)', color='blue', alpha=0.5)
+    ax.plot(df_rendimientos.index, df_rendimientos['log_ret'] * 100, label='Log Returns (%)', color='blue', alpha=0.5)
     ax.set_xlabel('Date')
     ax.set_ylabel('Log Returns (%)')
     ax.legend()
