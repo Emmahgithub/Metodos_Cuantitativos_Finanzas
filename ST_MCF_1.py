@@ -225,7 +225,7 @@ if stock_seleccionado:
     ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='green')
     ax.plot(ESH_rolling_df_95.index, ESH_rolling_df_95['0.95% ESH Rolling'] *100, label='0.95% ESH Rolling', color='red')
     ax.plot(ESN_rolling_df_99.index, ESN_rolling_df_99['0.99% ESN Rolling'] *100, label='0.99% ESN Rolling', color='blue')
-    ax.plot(ESH_rolling_df_99.index, ESH_rolling_df_99['0.99% ESN Rolling'] *100, label='0.99% ESH Rolling', color='orange')
+    ax.plot(ESH_rolling_df_99.index, ESH_rolling_df_99['0.99% ESH Rolling'] *100, label='0.99% ESH Rolling', color='orange')
     ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
     ax.set_xlabel('Date')
     ax.set_ylabel('Values (%)')
