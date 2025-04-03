@@ -291,3 +291,33 @@ if stock_seleccionado:
 
     for metodo, (violaciones, porcentaje) in resultados_var.items():
         st.text(f"{metodo}: {violaciones} violaciones ({porcentaje:.2f}%)")
+
+
+
+    ###############################################################################################
+
+    # Percentiles para la distribución normal estándar
+    q_5 = norm.ppf(0.05)  # Para α = 0.05
+    q_1 = norm.ppf(0.01)  # Para α = 0.01
+
+    # Calcular el VaR con volatilidad móvil
+    VaR_vol_95 = q_5 * rolling_std
+    VaR_vol_99 = q_1 * rolling_std
+
+    # Convertir a DataFrame para graficar
+    VaR_vol_df = pd.DataFrame({
+        'Date': df_rendimientos.index,
+        'VaR_vol_95': VaR_vol_95,
+        'VaR_vol_99': VaR_vol_99
+    }).set_index('Date')
+
+    # Graficar
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
+    ax.plot(VaR_vol_df.index, VaR_vol_df['VaR_vol_95'] * 100, label='VaR 95% (Vol Movil)', color='green')
+    ax.plot(VaR_vol_df.index, VaR_vol_df['VaR_vol_99'] * 100, label='VaR 99% (Vol Movil)', color='red')
+    ax.set_title(f'VaR con Volatilidad Móvil para {stock_seleccionado}')
+    ax.set_xlabel('Fecha')
+    ax.set_ylabel('VaR (%)')
+    ax.legend()
+    st.pyplot(fig)
