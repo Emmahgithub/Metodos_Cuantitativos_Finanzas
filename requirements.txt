@@ -6,4 +6,3 @@ scipy
 matplotlib
 lmxl
 altair
-statsmodels
