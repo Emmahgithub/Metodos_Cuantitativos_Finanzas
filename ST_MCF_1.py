@@ -210,7 +210,7 @@ if stock_seleccionado:
     ESH_R_95 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_95, raw=True)
     ESH_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESH Rolling': ESH_R_95}).set_index('Date')
 
-###################################################
+################################################### Esta mamada de parte como la oodie ojala se retuersan en sus tumbas las personas que hicieron esto
 
    #Calculamos el valor de VaR_R (Parametrico normal) 99%
     VaRN_R_99 = norm.ppf(1-0.99, rolling_mean, rolling_std)
@@ -228,7 +228,7 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESH_R 99%
 
-    ESH_R_99 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_99, raw=True)
+    ESH_R_99 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_99, raw=True) #mira nomas esta mmda estas mmdaassss de ESSSSSSSs me tocaron mis huevoossss me queria colgar ahora no pyedo leer ES pq me quiero colgar de los huevos
     ESH_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% ESH Rolling': ESH_R_99}).set_index('Date')
 
 
@@ -252,7 +252,7 @@ if stock_seleccionado:
     st.pyplot(fig)
 
 
-
+#inga tu roña mira q grafica tan bonita pensar q me tomo 3 dias hacerla y entender pq daba error me tomo solo mi salud mental
 
     st.text("Acontinuacion onbservaremos los resultados del ES parametrico (Normal) como tambien el historico al 99% y al 95%")
     
@@ -269,14 +269,14 @@ if stock_seleccionado:
     st.pyplot(fig)
 
 
-    ####################################################################
+    #################################################################### vtl aqui casi me cago
 
     # Calculo de violaciones de VaR y ES con Rolling Window
 
     st.header("Cálculo de Violaciones de VaR y ES con Rolling Window")
     st.text("Acontinuacion se calcularan las violaciones de los resultados obtenidos anteriormente es decir calcularemos el porcentaje de violaciones que hubo en cada una de las medidas de riesgo que se calcularon con rolling window")
     
-    var_dict = {
+    var_dict = {#como odio los diccionarios
         "VaR Normal 95%": VaRN_rolling_df_95['0.95% VaRN Rolling'],
         "ES Normal 95%": ESN_rolling_df_95['0.95% ESN Rolling'],
         "VaR Histórico 95%": VaRH_rolling_df_95['0.95% VaRH Rolling'],
@@ -294,7 +294,7 @@ if stock_seleccionado:
 
 
 
-    ###############################################################################################
+    ############################################################################################### jajajaj q cagdo pongo esto pa separar y creo q se ve mas ogt
 
     st.subheader("Cálculo de VaR con Volatilidad Móvil")
 
@@ -302,18 +302,18 @@ if stock_seleccionado:
     q_5 = norm.ppf(0.05)  # Para α = 0.05
     q_1 = norm.ppf(0.01)  # Para α = 0.01
 
-    # Calcular el VaR con volatilidad móvil
+    # Calcular el VaR con volatilidad móvil (mas me muevo yo mientras me retuerso)
     VaR_vol_95 = q_5 * rolling_std
     VaR_vol_99 = q_1 * rolling_std
 
-    # Convertir a DataFrame para graficar
+    # Convertir a DataFrame para graficar si dios existe pq no estoy con el
     VaR_vol_df = pd.DataFrame({
         'Date': df_rendimientos.index,
         'VaR_vol_95': VaR_vol_95,
         'VaR_vol_99': VaR_vol_99
     }).set_index('Date')
 
-    # Graficar
+    # Graficar odio odio odio
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
     ax.plot(VaR_vol_df.index, VaR_vol_df['VaR_vol_95'] * 100, label='VaR 95% (Vol Movil)', color='green')
@@ -323,3 +323,12 @@ if stock_seleccionado:
     ax.set_ylabel('VaR (%)')
     ax.legend()
     st.pyplot(fig)
+
+    #Ya solo faltan las violaciones pero la neta q flojera, si las voy a hacer pero la neta q coraje me quurisad colgar d lis guevoosssssssssss
+
+    # Calcular violaciones
+    violaciones_95 = (df_rendimientos[stock_seleccionado] < VaR_vol_95).sum()
+    violaciones_99 = (df_rendimientos[stock_seleccionado] < VaR_vol_99).sum()
+
+    st.write(f"Violaciones del VaR 95% con Volatilidad Móvil: {violaciones_95}")
+    st.write(f"Violaciones del VaR 99% con Volatilidad Móvil: {violaciones_99}")
