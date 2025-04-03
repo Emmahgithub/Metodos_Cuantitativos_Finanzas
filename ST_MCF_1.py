@@ -95,6 +95,12 @@ def calcular_violaciones(df_rendimientos, stock_seleccionado, var_series, es_ser
     violaciones_es = (df_rendimientos[stock_seleccionado] < es_series).sum()
     return violaciones_var, violaciones_es
 
+def calcular_porcentaje_violaciones(df_rendimientos, stock_seleccionado, var_series):
+    violaciones = (df_rendimientos[stock_seleccionado] < var_series).sum()
+    total_observaciones = len(df_rendimientos)
+    porcentaje_violaciones = (violaciones / total_observaciones) * 100
+    return violaciones, porcentaje_violaciones
+
 
 
 ###################################################################################################################
@@ -261,6 +267,9 @@ if stock_seleccionado:
     ax.legend()
     st.pyplot(fig)
 
+
+    ####################################################################
+
     violaciones_var_95, violaciones_es_95 = calcular_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_95['0.95% VaRN Rolling'], ESN_rolling_df_95['0.95% ESN Rolling'])
     violaciones_var_99, violaciones_es_99 = calcular_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_99['0.99% VaRN Rolling'], ESN_rolling_df_99['0.99% ESN Rolling'])
 
@@ -269,3 +278,10 @@ if stock_seleccionado:
     st.text(f"Número de veces que la pérdida fue mayor que el ES al 95%: {violaciones_es_95}")
     st.text(f"Número de veces que la pérdida fue mayor que el VaR al 99%: {violaciones_var_99}")
     st.text(f"Número de veces que la pérdida fue mayor que el ES al 99%: {violaciones_es_99}")
+
+    violaciones_var_95, porcentaje_var_95 = calcular_porcentaje_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_95['0.95% VaRN Rolling'])
+    violaciones_var_99, porcentaje_var_99 = calcular_porcentaje_violaciones(df_rendimientos, stock_seleccionado, VaRN_rolling_df_99['0.99% VaRN Rolling'])
+
+    st.subheader("Validación de Estimaciones: Violaciones de VaR y Porcentajes")
+    st.text(f"Violaciones de VaR al 95%: {violaciones_var_95} ({porcentaje_var_95:.2f}%)")
+    st.text(f"Violaciones de VaR al 99%: {violaciones_var_99} ({porcentaje_var_99:.2f}%)")
