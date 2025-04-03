@@ -202,3 +202,5 @@ if stock_seleccionado:
     print(ESN_rolling_df_95)
 
     print(ESH_rolling_df_95)
+
+    st.dataframe(ESN_rolling_df_95)
