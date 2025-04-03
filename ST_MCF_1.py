@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 from scipy.stats import kurtosis, skew, shapiro ,norm, t
 import altair as alt
+import math
 
 
 
@@ -137,8 +138,20 @@ if stock_seleccionado:
     col3.metric("Skew", f"{skew:.2}")
 
     #GRAFICA AGREGADA AL FINAL CUANDO MIS HUEVOS PELIGRABAN DE LOS RENDIMIENTOS DIARIOS PA Q SE VEA BONITO
+
+    st.subheader("Gráfico de Rendimientos Diarios") #oliwis :)
+
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Values (%)')
+    ax.legend()
+    st.pyplot(fig)
+    
+    st.subheader("Rendimientos logaritmicos")
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(df_rendimientos.index, math.log(df_rendimientos[stock_seleccionado] * 100), label='Daily Returns (%)', color='blue', alpha=0.5)
     ax.set_xlabel('Date')
     ax.set_ylabel('Values (%)')
     ax.legend()
