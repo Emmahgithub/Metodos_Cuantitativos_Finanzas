@@ -327,8 +327,13 @@ if stock_seleccionado:
     #Ya solo faltan las violaciones pero la neta q flojera, si las voy a hacer pero la neta q coraje me quurisad colgar d lis guevoosssssssssss
 
     # Calcular violaciones mas violado me senti yo haciendo esto :))))
-    violaciones_95 = (df_rendimientos[stock_seleccionado] < VaR_vol_95).sum()
-    violaciones_99 = (df_rendimientos[stock_seleccionado] < VaR_vol_99).sum()
+    var_dict2 = {
+    "VaR Volatilidad Móvil 95%": VaR_vol_df["VaR_vol_95"],
+    "VaR Volatilidad Móvil 99%": VaR_vol_df["VaR_vol_99"]
+    }
 
-    st.write(f"Violaciones del VaR 95% con Volatilidad Móvil: {violaciones_95}")
-    st.write(f"Violaciones del VaR 99% con Volatilidad Móvil: {violaciones_99}")
+    resultados_var2 = calcular_violaciones_var(df_rendimientos, stock_seleccionado, var_dict2)
+
+
+    for metodo, (violaciones, porcentaje) in resultados_var2.items():
+        st.text(f"{metodo}: {violaciones} violaciones ({porcentaje:.2f}%)")
