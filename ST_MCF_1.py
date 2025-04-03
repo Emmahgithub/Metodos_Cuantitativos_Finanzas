@@ -140,7 +140,7 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESN_R (Parametrico) 95%
 
-    ESN_R_95 =  rolling_mean - rolling_std * (norm.pdf(norm.ppf(1 - alpha)) / (1 - alpha)) 
+    ESN_R_95 =  rolling_mean - rolling_std * (norm.pdf(norm.ppf(1 - 0.95)) / (1 - 0.95)) 
     ESN_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESN Rolling': ESN_R_95}).set_index('Date')
 
     #Calculamos el valor para VaRH_R 95%
