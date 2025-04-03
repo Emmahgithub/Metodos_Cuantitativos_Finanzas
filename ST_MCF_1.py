@@ -15,7 +15,7 @@ st.cache_data.clear()
 st.title("Calculo de Value-At-Risk y de Expected Shortfall.")
 
 #######################################---BACKEND---##################################################
-
+#inciso a), b), c)
 
 st.title("Visualización de Rendimientos de Acciones")
 # st.write('hola')
@@ -28,12 +28,10 @@ def obtener_datos(stocks):
 def calcular_rendimientos(df):
     return df.pct_change().dropna()
 
-# Expected Shortfall (ES) Rolling - Paramétrico Normal al 0.95%
-def calcular_es_normal_r(rendimientos):
-    if len(rendimientos) < window:
-        return np.nan
-    var = norm.ppf(1 - 0.95, rendimientos.mean(), rendimientos.std())
-    return rendimientos[rendimientos <= var].mean()
+
+
+#####################################################################################################################
+
 
 
 def var_es_historico(df_rendimientos, stock_seleccionado, alpha):
@@ -58,6 +56,41 @@ def var_es_montecarlo(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_
     ES_mc = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_mc].mean()
     return VaR_mc, ES_mc
 
+#########################################################################################################################
+
+# Expected Shortfall (ES) Rolling - Paramétrico Normal al 0.95% (Esto es para el inciso d)) 
+def calcular_es_normal_r_95(rendimientos):
+    if len(rendimientos) < window:
+        return np.nan
+    var = norm.ppf(1 - 0.95, rendimientos.mean(), rendimientos.std())
+    return rendimientos[rendimientos <= var].mean()
+# Expected Shortfall (ES) Rolling - Paramétrico Normal al 0.99% (Esto es para el inciso d))
+
+def calcular_es_normal_r_99(rendimientos):
+    if len(rendimientos) < window:
+        return np.nan
+    var = norm.ppf(1 - 0.99, rendimientos.mean(), rendimientos.std())
+    return rendimientos[rendimientos <= var].mean()
+
+# Expected Shortfall (ES) Rolling - Histórico al 95% 
+def calcular_es_historico_r_95(rendimientos):
+    rendimientos = pd.Series(rendimientos)  # Convertir a Pandas Series
+    if len(rendimientos) < window:
+        return np.nan
+    var = rendimientos.quantile(1 - 0.95)
+    return rendimientos[rendimientos <= var].mean()
+
+# Expected Shortfall (ES) Rolling - Histórico al 99%
+def calcular_es_historico_r_99(rendimientos):
+    rendimientos = pd.Series(rendimientos)
+    if len(rendimientos) < window:
+        return np.nan
+    var = rendimientos.quantile(1 - 0.99)
+    return rendimientos[rendimientos <= var].mean()
+
+
+
+###################################################################################################################
 # Lista de acciones de ejemplo
 stocks_lista = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN']
 
@@ -149,7 +182,7 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESN_R (Parametrico) 95%
 
-    ESN_R_95 =  df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_normal_r, raw=True)
+    ESN_R_95 =  df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_normal_r_95, raw=True)
     ESN_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESN Rolling': ESN_R_95}).set_index('Date')
 
     #Calculamos el valor para VaRH_R 95%
@@ -160,7 +193,7 @@ if stock_seleccionado:
     #Calculamos el valor para ESH_R 95%
 
 
-    ESH_R_95 = 1
+    ESH_R_95 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_95, raw=True)
     ESH_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESH Rolling': ESH_R_95}).set_index('Date')
 
 ###################################################
@@ -171,7 +204,7 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESN_R (Parametrico) 99%
 
-    ESN_R_99 = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaRN_R_99].mean()
+    ESN_R_99 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_normal_r_99, raw=True)
     ESN_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% ESN Rolling': ESN_R_99}).set_index('Date')
 
     #Calculamos el valor para VaRH_R 99%
@@ -181,7 +214,7 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESH_R 99%
 
-    ESH_R_99 = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaRH_R_99].mean()
+    ESH_R_99 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_99, raw=True)
     ESH_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% ESN Rolling': ESH_R_99}).set_index('Date')
 
 
@@ -189,8 +222,9 @@ if stock_seleccionado:
     
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
-    ax.plot(VaRN_rolling_df_95.index, VaRN_rolling_df_95['0.95% VaR Rolling'] * 100, label='0.95% VaR Rolling', color='red')
     ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='green')
+    ax.plot(ESH_rolling_df_95.index, ESH_rolling_df_95['0.95% ESH Rolling'] *100, label='0.95% ESN Rolling', color='red')
+    ax.plot(ESN_rolling_df_99.index, ESN_rolling_df_99['0.99% ESN Rolling'] *100, label='0.99% ESN Rolling', color='blue')
     ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
     ax.set_xlabel('Date')
     ax.set_ylabel('Values (%)')
@@ -198,9 +232,3 @@ if stock_seleccionado:
     st.pyplot(fig)
 
     #grafica prueba
-
-    print(ESN_rolling_df_95)
-
-    print(ESH_rolling_df_95)
-
-    st.dataframe(ESN_rolling_df_95)
