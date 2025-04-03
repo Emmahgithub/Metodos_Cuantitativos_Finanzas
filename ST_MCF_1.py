@@ -215,7 +215,7 @@ if stock_seleccionado:
     #Calculamos el valor para ESH_R 99%
 
     ESH_R_99 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_99, raw=True)
-    ESH_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% ESN Rolling': ESH_R_99}).set_index('Date')
+    ESH_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% ESH Rolling': ESH_R_99}).set_index('Date')
 
 
     # Graficamos los resultados de VaR y ES con Rolling Window al 95%
@@ -223,8 +223,9 @@ if stock_seleccionado:
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Daily Returns (%)', color='blue', alpha=0.5)
     ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='green')
-    ax.plot(ESH_rolling_df_95.index, ESH_rolling_df_95['0.95% ESH Rolling'] *100, label='0.95% ESN Rolling', color='red')
+    ax.plot(ESH_rolling_df_95.index, ESH_rolling_df_95['0.95% ESH Rolling'] *100, label='0.95% ESH Rolling', color='red')
     ax.plot(ESN_rolling_df_99.index, ESN_rolling_df_99['0.99% ESN Rolling'] *100, label='0.99% ESN Rolling', color='blue')
+    ax.plot(ESH_rolling_df_99.index, ESH_rolling_df_99['0.99% ESN Rolling'] *100, label='0.99% ESH Rolling', color='orange')
     ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
     ax.set_xlabel('Date')
     ax.set_ylabel('Values (%)')
