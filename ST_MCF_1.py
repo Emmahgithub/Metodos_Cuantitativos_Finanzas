@@ -37,24 +37,24 @@ def calcular_rendimientos(df):
 def var_es_historico(df_rendimientos, stock_seleccionado, alpha):
     hVaR = df_rendimientos[stock_seleccionado].quantile(1 - alpha)
     ES_hist = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= hVaR].mean()
-    return hVaR *(-1), ES_hist *(-1)
+    return hVaR , ES_hist 
 
 def var_es_parametrico_normal(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado):
     VaR_norm = norm.ppf(1 - alpha, rendimiento_medio, std_dev)
     ES_norm = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_norm].mean()
-    return VaR_norm*(-1), ES_norm *(-1)
+    return VaR_norm, ES_norm 
 
 def var_es_parametrico_t(rendimiento_medio, std_dev, df_t, alpha, df_rendimientos, stock_seleccionado):
     t_ppf = t.ppf(1 - alpha, df_t)
     VaR_t = rendimiento_medio + std_dev * t_ppf * np.sqrt((df_t - 2) / df_t)
     ES_t = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_t].mean()
-    return VaR_t*(-1), ES_t *(-1)
+    return VaR_t, ES_t 
 
 def var_es_montecarlo(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado, num_sim=10000):
     simulaciones = np.random.normal(rendimiento_medio, std_dev, num_sim)
     VaR_mc = np.percentile(simulaciones, (1 - alpha) * 100)
     ES_mc = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_mc].mean()
-    return VaR_mc*(-1), ES_mc*(-1)
+    return VaR_mc, ES_mc
 
 #########################################################################################################################
 
