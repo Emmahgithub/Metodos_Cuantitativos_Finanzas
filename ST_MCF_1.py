@@ -14,19 +14,17 @@ st.cache_data.clear()
 st.title("Calculo de Value-At-Risk y de Expected Shortfall.")
 
 #######################################---BACKEND---##################################################
-#inciso a), b), c)
 
 st.title("Visualización de Rendimientos de Acciones")
-# st.write('hola')
+
 @st.cache_data
 def obtener_datos(stocks):
-    df = yf.download(stocks, start="2010-01-01")['Close']
+    df = yf.download(stocks, start="2024-01-01")['Close']
     return df
 
 @st.cache_data
 def calcular_rendimientos(df):
     return df.pct_change().dropna()
-
 
 
 #####################################################################################################################
@@ -56,6 +54,7 @@ def var_es_montecarlo(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_
     return VaR_mc, ES_mc
 
 #########################################################################################################################
+
 
 # Expected Shortfall (ES) Rolling - Paramétrico Normal al 0.95% (Esto es para el inciso d)) 
 def calcular_es_normal_r_95(rendimientos):
@@ -195,14 +194,10 @@ if stock_seleccionado:
 
     st.subheader("Cálculo de VaR y ES con Rolling Window")
 
-
-
     window = 252  # Tamaño de la ventana móvil
-
 
     rolling_mean = df_rendimientos[stock_seleccionado].rolling(window).mean()
     rolling_std = df_rendimientos[stock_seleccionado].rolling(window).std()
-
     
     #Calculamos el valor de VaR_R (Parametrico normal) 95%
     VaRN_R_95 = norm.ppf(1-0.95, rolling_mean, rolling_std) 
@@ -283,7 +278,7 @@ if stock_seleccionado:
     st.pyplot(fig)
 
 
-    #################################################################### vtl aqui casi me cago
+    #################################################################### 
 
     # Calculo de violaciones de VaR y ES con Rolling Window
 
