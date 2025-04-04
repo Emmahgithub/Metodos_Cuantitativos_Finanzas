@@ -14,17 +14,20 @@ st.cache_data.clear()
 st.title("Calculo de Value-At-Risk y de Expected Shortfall.")
 
 #######################################---BACKEND---##################################################
+#inciso a), b), c)
 
 st.title("Visualización de Rendimientos de Acciones")
+# st.write('hola')
 
 @st.cache_data
 def obtener_datos(stocks):
-    df = yf.download(stocks, start="2024-01-01")['Close']
+    df = yf.download(stocks, start="2010-01-01")['Close']
     return df
 
 @st.cache_data
 def calcular_rendimientos(df):
     return df.pct_change().dropna()
+
 
 
 #####################################################################################################################
@@ -34,27 +37,26 @@ def calcular_rendimientos(df):
 def var_es_historico(df_rendimientos, stock_seleccionado, alpha):
     hVaR = df_rendimientos[stock_seleccionado].quantile(1 - alpha)
     ES_hist = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= hVaR].mean()
-    return hVaR, ES_hist
+    return hVaR *(-1), ES_hist *(-1)
 
 def var_es_parametrico_normal(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado):
     VaR_norm = norm.ppf(1 - alpha, rendimiento_medio, std_dev)
     ES_norm = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_norm].mean()
-    return VaR_norm, ES_norm
+    return VaR_norm*(-1), ES_norm *(-1)
 
 def var_es_parametrico_t(rendimiento_medio, std_dev, df_t, alpha, df_rendimientos, stock_seleccionado):
     t_ppf = t.ppf(1 - alpha, df_t)
     VaR_t = rendimiento_medio + std_dev * t_ppf * np.sqrt((df_t - 2) / df_t)
     ES_t = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_t].mean()
-    return VaR_t, ES_t
+    return VaR_t*(-1), ES_t *(-1)
 
 def var_es_montecarlo(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado, num_sim=10000):
     simulaciones = np.random.normal(rendimiento_medio, std_dev, num_sim)
     VaR_mc = np.percentile(simulaciones, (1 - alpha) * 100)
     ES_mc = df_rendimientos[stock_seleccionado][df_rendimientos[stock_seleccionado] <= VaR_mc].mean()
-    return VaR_mc, ES_mc
+    return VaR_mc*(-1), ES_mc*(-1)
 
 #########################################################################################################################
-
 
 # Expected Shortfall (ES) Rolling - Paramétrico Normal al 0.95% (Esto es para el inciso d)) 
 def calcular_es_normal_r_95(rendimientos):
@@ -85,26 +87,29 @@ def calcular_es_historico_r_99(rendimientos):
         return np.nan
     var = rendimientos.quantile(1 - 0.99)
     return rendimientos[rendimientos <= var].mean()
+
 #################################################################################################################33
 #inciso e)
 
 def calcular_violaciones_var(df_rendimientos, stock_seleccionado, var_dict):
     resultados = {}
-    total_observaciones = len(df_rendimientos)
 
     for metodo, var_series in var_dict.items():
-        violaciones = (df_rendimientos[stock_seleccionado] < var_series).sum()
-        porcentaje_violaciones = (violaciones / total_observaciones) * 100
+        serie_aligned = var_series.reindex(df_rendimientos.index)
+        n_valid = serie_aligned.notna().sum()
+        violaciones = (df_rendimientos[stock_seleccionado] < serie_aligned).sum()
+        porcentaje_violaciones = ((violaciones / n_valid) * 100 ) if n_valid > 0 else 0.0
         resultados[metodo] = (violaciones, porcentaje_violaciones)
     
     return resultados
 
-
-
-
+def color_porcentaje(val):
+        color = 'red' if val > 2.5 else 'green'
+        return f'color: {color}; font-weight: bold'
 ###################################################################################################################
+
 # Lista de acciones de ejemplo
-stocks_lista = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN']
+stocks_lista = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN','SPY']
 
 
 with st.spinner("Descargando datos..."):
@@ -116,7 +121,7 @@ with st.spinner("Descargando datos..."):
 
 st.header("Selección de Acción")
 
-st.text("Selecciona una acción de la lista ya que apartir de ella se calculara todo lo que se indica en cada ejercicio")
+st.text("Selecciona una acción de la lista ya que a esta se le aplicarán las métricas de riesgo, además de su robustes de los modelos a traves del número de violaciones")
 
 stock_seleccionado = st.selectbox("Selecciona una acción", stocks_lista)
 
@@ -128,26 +133,29 @@ if stock_seleccionado:
     skew = skew(df_rendimientos[stock_seleccionado])
     
 
-    
     col1, col2, col3= st.columns(3)
     col1.metric("Rendimiento Medio Diario", f"{rendimiento_medio:.4%}")
     col2.metric("Kurtosis", f"{Kurtosis:.4}")
     col3.metric("Skew", f"{skew:.2}")
 
-    #GRAFICA AGREGADA AL FINAL CUANDO MIS HUEVOS PELIGRABAN DE LOS RENDIMIENTOS DIARIOS PA Q SE VEA BONITO
 
     st.subheader("Gráfico de Rendimientos Diarios") #oliwis :)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='rendimientos (%)', color='blue', alpha=0.5)
-    ax.set_xlabel('fecha')
-    ax.set_ylabel('porcentajes (%)')
-    ax.legend()
-    st.pyplot(fig)
+    chart = alt.Chart(df_rendimientos[stock_seleccionado].reset_index()).mark_line(color='white', opacity=0.5).encode(
+        x=alt.X('Date', title='Fecha'),
+        y=alt.Y(f'{stock_seleccionado}', axis=alt.Axis(format='%', title='Rendimiento (%)')),
+        tooltip=[alt.Tooltip('Date', title='Fecha'), 
+             alt.Tooltip(f'{stock_seleccionado}', format='.2%', title='Rendimiento')]
+    ).properties(
+        width=800,
+        height=400,
+        title=f'Rendimientos Diarios de {stock_seleccionado}'
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
 
     # Calcular rendimientos logarítmicos 
-    #Aaaaaaaaaaaaaaaa pero queria que se viera bonito
-
 
     #Calculo de Value-At-Risk y de Expected Shortfall (historico)
 
@@ -158,12 +166,13 @@ if stock_seleccionado:
     resultados = []
     df_size = df_rendimientos[stock_seleccionado].size
     df_t = df_size - 1  # Grados de libertad para t-Student
+
     # Calcular VaR y ES para cada nivel de confianza
     for alpha in alphas:
-        hVaR, ES_hist = var_es_historico(df_rendimientos, stock_seleccionado, alpha)
-        VaR_norm, ES_norm = var_es_parametrico_normal(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado)
-        VaR_t, ES_t = var_es_parametrico_t(rendimiento_medio, std_dev, df_t, alpha, df_rendimientos, stock_seleccionado)
-        VaR_mc, ES_mc = var_es_montecarlo(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado)
+        hVaR, ES_hist = var_es_historico(df_rendimientos, stock_seleccionado, alpha) 
+        VaR_norm, ES_norm = var_es_parametrico_normal(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado) 
+        VaR_t, ES_t = var_es_parametrico_t(rendimiento_medio, std_dev, df_t, alpha, df_rendimientos, stock_seleccionado) 
+        VaR_mc, ES_mc = var_es_montecarlo(rendimiento_medio, std_dev, alpha, df_rendimientos, stock_seleccionado) 
         
         resultados.append([alpha, hVaR, ES_hist, VaR_norm, ES_norm, VaR_t, ES_t, VaR_mc, ES_mc])
 
@@ -186,18 +195,32 @@ if stock_seleccionado:
     st.subheader("Gráfico de comparación de VaR y ES")
     st.text("Este gráfico muestra la comparación de los diferentes métodos de cálculo de VaR y ES")
     st.bar_chart(df_resultados.set_index("Alpha").T)
+    st.text("Sin profundizar en cada método, el ES bajo la t de Student (ES_t) se posiciona como el estimador de riesgo más robusto, al capturar " \
+    "adecuadamente las pérdidas extremas en activos volátiles. Aunque puede sobreestimar en algunos casos, esto se debe a la alta volatilidad de " \
+    "los últimos 10 años, por lo que una mejora sería acotar el historial a un rango más reciente, como 5 años.") 
 
+    st.text("En contraste, los demás métodos tienden a subestimar o sobreestimar el riesgo según la forma de los retornos y los eventos incluidos. El método histórico es el que más tiende " \
+    "a sobreestimar el riesgo, debido a la inclusión de eventos extremos poco representativos del contexto actual, como crisis financieras o la pandemia, " \
+    "lo que lo convierte en el menos confiable de los analizados.")
+
+    st.text("Solo el modelo normal se aproxima en algunos escenarios al de la t dado su parentesco matemático." \
+    "En resumen, ES_t destaca como el modelo más coherente para una gestión de riesgo prudente, siempre que se ajuste adecuadamente el periodo histórico a analizar.")
     
-    ##################################################################################################
+    ###############################################################################################################################
+#inciso d)
     
     #Calculo de VaR y ES con Rolling Window
 
     st.subheader("Cálculo de VaR y ES con Rolling Window")
 
+
+
     window = 252  # Tamaño de la ventana móvil
+
 
     rolling_mean = df_rendimientos[stock_seleccionado].rolling(window).mean()
     rolling_std = df_rendimientos[stock_seleccionado].rolling(window).std()
+
     
     #Calculamos el valor de VaR_R (Parametrico normal) 95%
     VaRN_R_95 = norm.ppf(1-0.95, rolling_mean, rolling_std) 
@@ -215,13 +238,11 @@ if stock_seleccionado:
 
     #Calculamos el valor para ESH_R 95%
 
-
     ESH_R_95 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_95, raw=True)
     ESH_rolling_df_95 = pd.DataFrame({'Date': df_rendimientos.index, '0.95% ESH Rolling': ESH_R_95}).set_index('Date')
 
-################################################### Esta mamada de parte como la oodie ojala se retuersan en sus tumbas las personas que hicieron esto
-
    #Calculamos el valor de VaR_R (Parametrico normal) 99%
+
     VaRN_R_99 = norm.ppf(1-0.99, rolling_mean, rolling_std)
     VaRN_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% VaRN Rolling': VaRN_R_99}).set_index('Date')
 
@@ -240,52 +261,136 @@ if stock_seleccionado:
     ESH_R_99 = df_rendimientos[stock_seleccionado].rolling(window).apply(calcular_es_historico_r_99, raw=True) #mira nomas esta mmda estas mmdaassss de ESSSSSSSs me tocaron mis huevoossss me queria colgar ahora no pyedo leer ES pq me quiero colgar de los huevos
     ESH_rolling_df_99 = pd.DataFrame({'Date': df_rendimientos.index, '0.99% ESH Rolling': ESH_R_99}).set_index('Date')
 
+    st.subheader("Gráficos del VaR y ES con Rolling Window al 95% y 99% (Paramétrico (Normal) e Histórico)")
 
-    st.subheader("Gráficos del VaR y ES con Rolling Window al 95% y 99% (Parametrico (Normal) y Historico)")
-
-    st.text("Acontinuacion observaremos los resultados del VaR parametrico (Normal) como tambien el historico al 99% y al 95%")
+    st.text("A continuación observaremos los resultados del VaR Paramétrico (Normal) como también el histórico al 99% y al 95%.")
 
     # Graficamos los resultados de VaR y ES con Rolling Window al 95%
 
+    # Preparar datos combinados
+    df_var = pd.concat([
+        VaRN_rolling_df_95.rename(columns={'0.95% VaRN Rolling': 'value'}).assign(Metrica='0.95% VaRN Rolling'),
+        VaRH_rolling_df_95.rename(columns={'0.95% VaRH Rolling': 'value'}).assign(Metrica='0.95% VaRH Rolling'),
+        VaRN_rolling_df_99.rename(columns={'0.99% VaRN Rolling': 'value'}).assign(Metrica='0.99% VaRN Rolling'),
+        VaRH_rolling_df_99.rename(columns={'0.99% VaRH Rolling': 'value'}).assign(Metrica='0.99% VaRH Rolling')
+    ]).reset_index()
 
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Retornos Diarios (%)', color='blue', alpha=0.5)
-    ax.plot(VaRN_rolling_df_95.index, VaRN_rolling_df_95['0.95% VaRN Rolling'] *100, label='0.95% VaRN Rolling', color='green')
-    ax.plot(VaRH_rolling_df_95.index, VaRH_rolling_df_95['0.95% VaRH Rolling'] *100, label='0.95% VaRH Rolling', color='red')
-    ax.plot(VaRN_rolling_df_99.index, VaRN_rolling_df_99['0.99% VaRN Rolling'] *100, label='0.99% VaRN Rolling', color='blue')
-    ax.plot(VaRH_rolling_df_99.index, VaRH_rolling_df_99['0.99% VaRH Rolling'] *100, label='0.99% VaRH Rolling', color='orange')
-    ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
-    ax.set_xlabel('fehca')
-    ax.set_ylabel('procentaje (%)')
-    ax.legend()
-    st.pyplot(fig)
+    # Convertir a porcentaje y limpiar datos
+    df_var = df_var.dropna()
 
+    # Dataframe de rendimientos (convertir índice a columna 'Date')
+    df_rend_plot = df_rendimientos.reset_index().rename(columns={'index': 'Date'})
 
-#inga tu roña mira q grafica tan bonita pensar q me tomo 3 dias hacerla y entender pq daba error me tomo solo mi salud mental
+    # Convertir a porcentaje
+    df_rendimientos_plot = df_rendimientos.reset_index()
 
-    st.text("Acontinuacion onbservaremos los resultados del ES parametrico (Normal) como tambien el historico al 99% y al 95%")
+    # Crear la gráfica base
+    base = alt.Chart(df_rendimientos_plot).mark_line(
+        color='white',
+        opacity=0.5,
+    ).encode(
+        x=alt.X('Date', title='Fecha'),
+        y=alt.Y(f'{stock_seleccionado}', axis=alt.Axis(format='%', title='Rendimiento (%)')
+    ))
+
+    # Capa de VaR
+
+    var_layer = alt.Chart(df_var).mark_line(
+        strokeWidth=2
+    ).encode(
+        x='Date',
+        y=alt.Y('value', title='VaR (%)'),
+        color=alt.Color('Metrica', scale=alt.Scale(
+            domain=['0.95% VaRN Rolling', '0.95% VaRH Rolling', '0.99% VaRN Rolling', '0.99% VaRH Rolling'],
+            range=['#4daf4a', '#e41a1c', '#377eb8', '#ff7f00']  # Verde, Rojo, Azul, Naranja
+        )),
+        tooltip=[
+            alt.Tooltip('Date', title='Fecha'),
+            alt.Tooltip('value', title='VaR', format='%',),
+            alt.Tooltip('Metrica', title='Métrica')
+        ]
+    )
+
+    # Combinar y personalizar
+    chart = (base + var_layer).properties(
+        title=f'VaR con Volatilidad Móvil - {stock_seleccionado}',
+        width=800,
+        height=400
+    ).configure_legend(
+        title=None,
+        orient='bottom',
+        labelFontSize=12,
+        symbolStrokeWidth=6,
+        padding=10
+    ).configure_axis(
+        labelFontSize=12,
+        titleFontSize=14
+    ).configure_view(
+        strokeWidth=0
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
+
+    st.text("A continuación observaremos los resultados del ES paramétrico (Normal) como también el historico al 99% y al 95%.")
     
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Retornos Diarios (%)', color='blue', alpha=0.5)
-    ax.plot(ESN_rolling_df_95.index, ESN_rolling_df_95['0.95% ESN Rolling'] *100, label='0.95% ESN Rolling', color='green')
-    ax.plot(ESH_rolling_df_95.index, ESH_rolling_df_95['0.95% ESH Rolling'] *100, label='0.95% ESH Rolling', color='red')
-    ax.plot(ESN_rolling_df_99.index, ESN_rolling_df_99['0.99% ESN Rolling'] *100, label='0.99% ESN Rolling', color='blue')
-    ax.plot(ESH_rolling_df_99.index, ESH_rolling_df_99['0.99% ESH Rolling'] *100, label='0.99% ESH Rolling', color='orange')
-    ax.set_title('Retornos diaros, 0.95% VaR Rolling y 0.95% ESN Rolling')
-    ax.set_xlabel('fecha')
-    ax.set_ylabel('porcentajes (%)')
-    ax.legend()
-    st.pyplot(fig)
+    # Preparar los datos combinados
+    df_es = pd.concat([
+        ESN_rolling_df_95.rename(columns={'0.95% ESN Rolling': 'value'}).assign(Metrica='0.95% ESN Rolling'),
+        ESH_rolling_df_95.rename(columns={'0.95% ESH Rolling': 'value'}).assign(Metrica='0.95% ESH Rolling'),
+        ESN_rolling_df_99.rename(columns={'0.99% ESN Rolling': 'value'}).assign(Metrica='0.99% ESN Rolling'),
+        ESH_rolling_df_99.rename(columns={'0.99% ESH Rolling': 'value'}).assign(Metrica='0.99% ESH Rolling')
+    ]).reset_index()
 
+    # Capa de ES
+    es_layer = alt.Chart(df_es.dropna()).mark_line(
+        strokeWidth=2
+    ).encode(
+        x='Date',
+        y=alt.Y('value', title='ES (%)'),
+        color=alt.Color('Metrica', scale=alt.Scale(
+            domain=['0.95% ESN Rolling', '0.95% ESH Rolling', '0.99% ESN Rolling', '0.99% ESH Rolling'],
+            range=['#4daf4a', '#e41a1c', '#377eb8', '#ff7f00']  # Verde, Rojo, Azul, Naranja
+        )),
+        tooltip=[
+            alt.Tooltip('Date', title='Fecha'),
+            alt.Tooltip('value', title='ES', format='%'),
+            alt.Tooltip('Metrica', title='Métrica')
+        ]
+    ).properties(
+        width=800,
+        height=400
+    )
 
-    #################################################################### 
+    # Combinar las capas
 
-    # Calculo de violaciones de VaR y ES con Rolling Window
+    chart = (base + es_layer).properties(
+        title=f'VaR con Volatilidad Móvil - {stock_seleccionado}',
+        width=800,
+        height=400
+    ).configure_legend(
+        title=None,
+        orient='bottom',
+        labelFontSize=12,
+        symbolStrokeWidth=6,
+        padding=10
+    ).configure_axis(
+        labelFontSize=12,
+        titleFontSize=14
+    ).configure_view(
+        strokeWidth=0
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
+
+    ###################################################################################################################################
+#inciso e)
+
+    # Cálculo de violaciones de VaR y ES con Rolling Window
 
     st.header("Cálculo de Violaciones de VaR y ES con Rolling Window")
-    st.text("Acontinuacion se calcularan las violaciones de los resultados obtenidos anteriormente es decir calcularemos el porcentaje de violaciones que hubo en cada una de las medidas de riesgo que se calcularon con rolling window")
+    st.text("A continuación se calcularán las violaciones de los resultados obtenidos anteriormente, es decir, calcularemos el porcentaje de violaciones que hubo en cada una de las medidas de riesgo que se calcularón con Rolling Window.")
     
-    var_dict = {#como odio los diccionarios
+    var_dict ={
         "VaR Normal 95%": VaRN_rolling_df_95['0.95% VaRN Rolling'],
         "ES Normal 95%": ESN_rolling_df_95['0.95% ESN Rolling'],
         "VaR Histórico 95%": VaRH_rolling_df_95['0.95% VaRH Rolling'],
@@ -298,44 +403,98 @@ if stock_seleccionado:
 
     resultados_var = calcular_violaciones_var(df_rendimientos, stock_seleccionado, var_dict)
 
-    for metodo, (violaciones, porcentaje) in resultados_var.items():
-        st.text(f"{metodo}: {violaciones} violaciones ({porcentaje:.2f}%)")
+    df_resultados = pd.DataFrame.from_dict(resultados_var, orient='index', columns=['Violaciones', 'Porcentaje (%)']).reset_index()
+    df_resultados[['Método', 'Nivel de Confianza']] = df_resultados['index'].str.rsplit(' ', n=1, expand=True)
+    df_resultados = df_resultados[['Método', 'Nivel de Confianza', 'Violaciones', 'Porcentaje (%)']]
 
+    # Mostrar tabla con estilo
 
+    st.dataframe(
+    df_resultados.style
+    .format({'Porcentaje (%)': '{:.2f}%', 'Observaciones Válidas': '{:.0f}'})
+    .applymap(color_porcentaje, subset=['Porcentaje (%)']),
+    hide_index=True  # Ocultar la primera columna de índice
+    )
 
-    ############################################################################################### jajajaj q cagdo pongo esto pa separar y creo q se ve mas ogt
+    ##############################################################################################################################
+#inciso f)
 
     st.subheader("Cálculo de VaR con Volatilidad Móvil")
 
     # Percentiles para la distribución normal estándar
+
     q_5 = norm.ppf(0.05)  # Para α = 0.05
     q_1 = norm.ppf(0.01)  # Para α = 0.01
 
-    # Calcular el VaR con volatilidad móvil (mas me muevo yo mientras me retuerso)
+    # Calcular el VaR con volatilidad móvil 
+
     VaR_vol_95 = q_5 * rolling_std
     VaR_vol_99 = q_1 * rolling_std
 
-    # Convertir a DataFrame para graficar si dios existe pq no estoy con el
+    # Convertir a DataFrame para graficar 
+
     VaR_vol_df = pd.DataFrame({
         'Date': df_rendimientos.index,
         'VaR_vol_95': VaR_vol_95,
         'VaR_vol_99': VaR_vol_99
     }).set_index('Date')
 
-    # Graficar odio odio odio
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df_rendimientos.index, df_rendimientos[stock_seleccionado] * 100, label='Retornos Diarios (%)', color='blue', alpha=0.5)
-    ax.plot(VaR_vol_df.index, VaR_vol_df['VaR_vol_95'] * 100, label='VaR 95% (Vol Movil)', color='green')
-    ax.plot(VaR_vol_df.index, VaR_vol_df['VaR_vol_99'] * 100, label='VaR 99% (Vol Movil)', color='red')
-    ax.set_title(f'VaR con Volatilidad Móvil para {stock_seleccionado}')
-    ax.set_xlabel('Fecha')
-    ax.set_ylabel('VaR (%)')
-    ax.legend()
-    st.pyplot(fig)
+    # Preparar datos
 
-    #Ya solo faltan las violaciones pero la neta q flojera, si las voy a hacer pero la neta q coraje me quurisad colgar d lis guevoosssssssssss
+    df_rend_plot = df_rendimientos.reset_index().rename(columns={'index': 'Date'})
 
-    # Calcular violaciones mas violado me senti yo haciendo esto :))))
+    # Preparar datos de VaR
+
+    df_var_vol = VaR_vol_df.reset_index().melt(id_vars='Date', 
+                                            value_vars=['VaR_vol_95', 'VaR_vol_99'],
+                                            var_name='Métrica', 
+                                            value_name='Valor')
+    df_var_vol['Métrica'] = df_var_vol['Métrica'].replace({
+        'VaR_vol_95': 'VaR 95% (Vol Móvil)',
+        'VaR_vol_99': 'VaR 99% (Vol Móvil)'
+    })
+
+    # Capa de VaR
+
+    var_layer = alt.Chart(df_var_vol.dropna()).mark_line(
+        strokeWidth=2
+    ).encode(
+        x='Date',
+        y=alt.Y('Valor', title='VaR (%)'),
+        color=alt.Color('Métrica', scale=alt.Scale(
+            domain=['VaR 95% (Vol Móvil)', 'VaR 99% (Vol Móvil)'],
+            range=['#4682B4', '#FFD700']  # Azul, DoradoD
+        )),
+        tooltip=[
+            alt.Tooltip('Date', title='Fecha', format='%Y-%m-%d'),
+            alt.Tooltip('Valor', title='VaR', format='%'),
+            alt.Tooltip('Métrica', title='Nivel de Confianza')
+        ]
+    )
+
+    # Combinar y personalizar
+
+    chart = (base + var_layer).properties(
+        title=f'VaR con Volatilidad Móvil - {stock_seleccionado}',
+        width=800,
+        height=400
+    ).configure_legend(
+        title=None,
+        orient='bottom',
+        labelFontSize=12,
+        symbolStrokeWidth=6,
+        padding=10
+    ).configure_axis(
+        labelFontSize=12,
+        titleFontSize=14
+    ).configure_view(
+        strokeWidth=0
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
+
+    # Calcular violaciones 
+
     var_dict2 = {
     "VaR Volatilidad Móvil 95%": VaR_vol_df["VaR_vol_95"],
     "VaR Volatilidad Móvil 99%": VaR_vol_df["VaR_vol_99"]
@@ -343,6 +502,17 @@ if stock_seleccionado:
 
     resultados_var2 = calcular_violaciones_var(df_rendimientos, stock_seleccionado, var_dict2)
 
-
     for metodo, (violaciones, porcentaje) in resultados_var2.items():
         st.text(f"{metodo}: {violaciones} violaciones ({porcentaje:.2f}%)")
+
+
+    df_resultados2 = pd.DataFrame.from_dict(resultados_var2, orient='index', columns=['Violaciones', 'Porcentaje (%)']).reset_index()
+    df_resultados2[['Método', 'Nivel de Confianza']] = df_resultados2['index'].str.rsplit(' ', n=1, expand=True)
+    df_resultados2 = df_resultados2[['Método', 'Nivel de Confianza', 'Violaciones', 'Porcentaje (%)']]
+
+    st.dataframe(
+    df_resultados2.style
+    .format({'Porcentaje (%)': '{:.2f}%', 'Observaciones Válidas': '{:.0f}'})
+    .applymap(color_porcentaje, subset=['Porcentaje (%)']),
+    hide_index=True  # Ocultar la primera columna de índice
+    )
