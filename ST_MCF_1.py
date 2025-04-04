@@ -195,7 +195,7 @@ if stock_seleccionado:
     st.subheader("Gráfico de comparación de VaR y ES")
     st.text("Este gráfico muestra la comparación de los diferentes métodos de cálculo de VaR y ES")
     st.bar_chart(df_resultados.set_index("Alpha").T)
-    st.text("Sin profundizar en cada método, el ES bajo la t de Student (ES_t) se posiciona como el estimador de riesgo más robusto, al capturar " \
+    st.text("El ES bajo la t de Student (ES_t) se posiciona como el estimador de riesgo más robusto, al capturar " \
     "adecuadamente las pérdidas extremas en activos volátiles. Aunque puede sobreestimar en algunos casos, esto se debe a la alta volatilidad de " \
     "los últimos 10 años, por lo que una mejora sería acotar el historial a un rango más reciente, como 5 años.") 
 
@@ -313,7 +313,7 @@ if stock_seleccionado:
 
     # Combinar y personalizar
     chart = (base + var_layer).properties(
-        title=f'VaR con Volatilidad Móvil - {stock_seleccionado}',
+        title=f'VaRH y VaRN con Rolling Window - {stock_seleccionado}',
         width=800,
         height=400
     ).configure_legend(
@@ -374,7 +374,7 @@ if stock_seleccionado:
     # Combinar las capas
 
     chart = (base + es_layer).properties(
-        title=f'VaR con Volatilidad Móvil - {stock_seleccionado}',
+        title=f'ESH y ESN con Rolling Window - {stock_seleccionado}',
         width=800,
         height=400
     ).configure_legend(
@@ -391,6 +391,13 @@ if stock_seleccionado:
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
+
+    st.text("El ES Histórico tiende a ser más sensible a la magnitud de las pérdidas extremas que el ES Paramétrico (Normal). Cuando ocurren caídas significativas, el ESH Rolling (líneas roja y naranja) refleja la profundidad de esas pérdidas, resultando en valores más negativos.")
+
+    st.text("El ES Paramétrico (Normal) es más suave y se basa en la volatilidad reciente. Al asumir una distribución normal, el ES paramétrico estima la pérdida esperada más allá del VaR basándose en las propiedades de esa distribución. Esto hace que su respuesta a eventos extremos puntuales sea menos drástica que la del ES histórico.")
+
+    st.text("Generalmente, el ES (tanto paramétrico como histórico) es más negativo que el VaR para el mismo nivel de confianza. Esto se debe a que el ES considera la severidad de las pérdidas más allá del umbral del VaR.")
+
 
     ###################################################################################################################################
 #inciso e)
@@ -425,6 +432,9 @@ if stock_seleccionado:
     .applymap(color_porcentaje, subset=['Porcentaje (%)']),
     hide_index=True  # Ocultar la primera columna de índice
     )
+
+    st.text("El VaR Histórico y Paramétrico al 95% presentan más violaciones que los demás métodos, lo que sugiere que subestiman el riesgo y no son una buena estimación. En contraste, el Expected Shortfall (ES) cumple con el criterio de una buena estimación en todos los casos, mostrando menos violaciones y mayor estabilidad. Para minimizar las violaciones, el ES es la mejor opción, seguido del VaR al 99%.")
+
 
     ##############################################################################################################################
 #inciso f)
@@ -526,3 +536,5 @@ if stock_seleccionado:
     .applymap(color_porcentaje, subset=['Porcentaje (%)']),
     hide_index=True  # Ocultar la primera columna de índice
     )
+
+    st.text("El modelo de VaR con volatilidad móvil permite adaptarse a cambios en el mercado y ofrece una estimación más realista del riesgo. Si el porcentaje de violaciones es menor al 2.5%, el modelo se considera adecuado. Un exceso de violaciones indica que el riesgo está subestimado, mientras que muy pocas violaciones pueden implicar un modelo demasiado conservador.")
