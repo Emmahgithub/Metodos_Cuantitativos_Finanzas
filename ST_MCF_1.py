@@ -21,7 +21,7 @@ st.title("Visualización de Rendimientos de Acciones")
 
 @st.cache_data
 def obtener_datos(stocks):
-    df = yf.download(stocks, start="2024-04-02")['Close']
+    df = yf.download(stocks, start="2010-04-02")['Close']
     return df
 
 @st.cache_data
