@@ -429,7 +429,7 @@ if stock_seleccionado:
     st.dataframe(
     df_resultados.style
     .format({'Porcentaje (%)': '{:.2f}%', 'Observaciones Válidas': '{:.0f}'})
-    .applymap(color_porcentaje, subset=['Porcentaje (%)']),
+    .map(color_porcentaje, subset=['Porcentaje (%)']),
     hide_index=True  # Ocultar la primera columna de índice
     )
 
