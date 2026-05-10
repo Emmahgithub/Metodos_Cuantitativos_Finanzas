@@ -532,9 +532,9 @@ if stock_seleccionado:
 
     st.dataframe(
     df_resultados2.style
-    .format({'Porcentaje (%)': '{:.2f}%', 'Observaciones Válidas': '{:.0f}'})
-    .applymap(color_porcentaje, subset=['Porcentaje (%)']),
-    hide_index=True  # Ocultar la primera columna de índice
-    )
+    .format({'Porcentaje (%)': '{:.2f}%'})
+    .map(color_porcentaje, subset=['Porcentaje (%)']),
+    hide_index=True
+)
 
     st.text("El modelo de VaR con volatilidad móvil permite adaptarse a cambios en el mercado y ofrece una estimación más realista del riesgo. Si el porcentaje de violaciones es menor al 2.5%, el modelo se considera adecuado. Un exceso de violaciones indica que el riesgo está subestimado, mientras que muy pocas violaciones pueden implicar un modelo demasiado conservador.")
