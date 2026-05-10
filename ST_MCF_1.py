@@ -181,16 +181,16 @@ if stock_seleccionado:
     st.subheader("Tabla comparativa de VaR y ES")
     st.text("Esta tabla muestra los resultados de los diferentes métodos de cálculo de VaR y ES")
     st.dataframe(
-        df_resultados.set_index("Alpha").style.format("{:.4%}")
-        .applymap(lambda _: "background-color: #FFDDC1; color: black;", subset=["hVaR"])  # Durazno 
-        .applymap(lambda _: "background-color: #C1E1FF; color: black;", subset=["ES_hist"])  # Azul 
-        .applymap(lambda _: "background-color: #B5EAD7; color: black;", subset=["VaR_Norm"])  # Verde 
-        .applymap(lambda _: "background-color: #FFB3BA; color: black;", subset=["ES_Norm"])  # Rosa 
-        .applymap(lambda _: "background-color: #FFDAC1; color: black;", subset=["VaR_t"])  # Naranja 
-        .applymap(lambda _: "background-color: #E2F0CB; color: black;", subset=["ES_t"])  # Verde 
-        .applymap(lambda _: "background-color: #D4A5A5; color: black;", subset=["VaR_MC"])  # Rojo 
-        .applymap(lambda _: "background-color: #CBAACB; color: black;", subset=["ES_MC"])  # Lila 
-    )
+    df_resultados.set_index("Alpha").style.format("{:.4%}")
+    .map(lambda _: "background-color: #FFDDC1; color: black;", subset=["hVaR"])
+    .map(lambda _: "background-color: #C1E1FF; color: black;", subset=["ES_hist"])
+    .map(lambda _: "background-color: #B5EAD7; color: black;", subset=["VaR_Norm"])
+    .map(lambda _: "background-color: #FFB3BA; color: black;", subset=["ES_Norm"])
+    .map(lambda _: "background-color: #FFDAC1; color: black;", subset=["VaR_t"])
+    .map(lambda _: "background-color: #E2F0CB; color: black;", subset=["ES_t"])
+    .map(lambda _: "background-color: #D4A5A5; color: black;", subset=["VaR_MC"])
+    .map(lambda _: "background-color: #CBAACB; color: black;", subset=["ES_MC"])
+)
 
     st.subheader("Gráfico de comparación de VaR y ES")
     st.text("Este gráfico muestra la comparación de los diferentes métodos de cálculo de VaR y ES")
